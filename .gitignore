@@ -1,0 +1,15 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE stuff
+.idea/
+.vscode/
+
+# Data files created at runtime
+users.txt
+*.db
