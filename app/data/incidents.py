@@ -1,69 +1,49 @@
 # app/data/incidents.py
 
-import pandas as pd
 from pathlib import Path
-from .db import connect_database
-
-DATA_DIR = Path(__file__).resolve().parents[2] / "DATA"
-CYBER_CSV = DATA_DIR / "cyber_incidents.csv"
+import pandas as pd
+from .db import get_connection, DB_PATH
 
 
-def load_incidents_from_csv(csv_path: Path = CYBER_CSV) -> int:
-    if not csv_path.exists():
-        print(f" CSV not found: {csv_path}")
-        return 0
-
-    conn = connect_database()
-    df = pd.read_csv(csv_path)
-    df.to_sql("cyber_incidents", conn, if_exists="append", index=False)
-    count = len(df)
-    conn.close()
-    print(f" Loaded {count} cyber incidents from {csv_path.name}")
-    return count
+DATA_DIR = Path("DATA")
+INCIDENTS_CSV = DATA_DIR / "cyber_incidents.csv"
+TABLE_NAME = "cyber_incidents"
 
 
-def insert_incident(date, incident_type, severity, status, description, reported_by=None) -> int:
-    conn = connect_database()
-    cur = conn.cursor()
-    cur.execute(
-        """
-        INSERT INTO cyber_incidents
-        (date, incident_type, severity, status, description, reported_by)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (date, incident_type, severity, status, description, reported_by),
-    )
-    conn.commit()
-    incident_id = cur.lastrowid
-    conn.close()
-    return incident_id
+def load_incidents_from_csv():
+    if not INCIDENTS_CSV.exists():
+        raise FileNotFoundError(f"CSV not found: {INCIDENTS_CSV}")
+
+    df = pd.read_csv(INCIDENTS_CSV)
+
+    conn = get_connection()
+    try:
+        # replace = drop existing table and recreate with CSV columns
+        df.to_sql(TABLE_NAME, conn, if_exists="replace", index=False)
+    finally:
+        conn.close()
 
 
-def get_all_incidents():
-    conn = connect_database()
-    df = pd.read_sql_query("SELECT * FROM cyber_incidents", conn)
-    conn.close()
-    return df
+def get_incident_count() -> int:
+    """
+    Return total number of incident records in the table.
+    """
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
+        (count,) = cur.fetchone()
+        return count
+    finally:
+        conn.close()
 
 
-def update_incident_status(incident_id: int, new_status: str) -> int:
-    conn = connect_database()
-    cur = conn.cursor()
-    cur.execute(
-        "UPDATE cyber_incidents SET status = ? WHERE id = ?",
-        (new_status, incident_id),
-    )
-    conn.commit()
-    changed = cur.rowcount
-    conn.close()
-    return changed
-
-
-def delete_incident(incident_id: int) -> int:
-    conn = connect_database()
-    cur = conn.cursor()
-    cur.execute("DELETE FROM cyber_incidents WHERE id = ?", (incident_id,))
-    conn.commit()
-    deleted = cur.rowcount
-    conn.close()
-    return deleted
+def get_sample_incidents(limit: int = 5):
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {TABLE_NAME} LIMIT ?", (limit,))
+        rows = cur.fetchall()
+        return rows
+    finally:
+        conn.close()

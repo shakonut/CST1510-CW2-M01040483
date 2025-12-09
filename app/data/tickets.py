@@ -1,22 +1,43 @@
 # app/data/tickets.py
 
-import pandas as pd
 from pathlib import Path
-from .db import connect_database
+import pandas as pd
+from .db import get_connection
 
-DATA_DIR = Path(__file__).resolve().parents[2] / "DATA"
+DATA_DIR = Path("DATA")
 TICKETS_CSV = DATA_DIR / "it_tickets.csv"
+TABLE_NAME = "tickets"
 
 
-def load_tickets_from_csv(csv_path: Path = TICKETS_CSV) -> int:
-    if not csv_path.exists():
-        print(f" CSV not found: {csv_path}")
-        return 0
+def load_tickets_from_csv():
+    if not TICKETS_CSV.exists():
+        raise FileNotFoundError(f"CSV not found: {TICKETS_CSV}")
 
-    conn = connect_database()
-    df = pd.read_csv(csv_path)
-    df.to_sql("it_tickets", conn, if_exists="append", index=False)
-    count = len(df)
-    conn.close()
-    print(f" Loaded {count} tickets from {csv_path.name}")
-    return count
+    df = pd.read_csv(TICKETS_CSV)
+
+    conn = get_connection()
+    try:
+        df.to_sql(TABLE_NAME, conn, if_exists="replace", index=False)
+    finally:
+        conn.close()
+
+
+def get_ticket_count() -> int:
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
+        (count,) = cur.fetchone()
+        return count
+    finally:
+        conn.close()
+
+
+def get_sample_tickets(limit: int = 5):
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {TABLE_NAME} LIMIT ?", (limit,))
+        return cur.fetchall()
+    finally:
+        conn.close()
