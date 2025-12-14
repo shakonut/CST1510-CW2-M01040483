@@ -7,7 +7,7 @@ import os
 
 
 # File where user data is stored
-USER_DATA_FILE = "users.txt"
+USER_DATA_FILE = "app_final/users.txt"
 
 
 def hash_password(plain_text_password: str) -> str:

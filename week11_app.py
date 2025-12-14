@@ -8,10 +8,10 @@ if str(BASE_DIR) not in sys.path:
 
 import streamlit as st
 
-from database.db import get_db
-from services.auth_manager import AuthManager
-from services.database_manager import DatabaseManager
-from models.security_incident import SecurityIncident
+from app_final.database import get_db
+from app_final.services import AuthManager
+from app_final.services.database_manager import DatabaseManager
+from app_final.models import SecurityIncident
 
 
 # Helper functions

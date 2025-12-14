@@ -1,5 +1,5 @@
 from pathlib import Path
-from services.database_manager import DatabaseManager
+from app_final.services.database_manager import DatabaseManager
 
 
 DB_PATH = Path(__file__).resolve().parent.parent / "intelligence_platform.db"

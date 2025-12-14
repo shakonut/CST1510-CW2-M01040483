@@ -1,8 +1,8 @@
 from typing import Optional
 import bcrypt
 
-from services.database_manager import DatabaseManager
-from models.user import User
+from app_final.services.database_manager import DatabaseManager
+from app_final.models import User
 
 
 class AuthManager:

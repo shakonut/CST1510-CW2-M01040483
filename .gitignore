@@ -11,5 +11,7 @@ __pycache__/
 .vscode/
 
 # Data files created at runtime
-users.txt
+app_final/users.txt
 *.db
+
+.env

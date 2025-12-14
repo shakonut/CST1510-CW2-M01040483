@@ -1,6 +1,6 @@
-from database.db import get_db
-from services.auth_manager import AuthManager
-from models.security_incident import SecurityIncident
+from app_final.database import get_db
+from app_final.services import AuthManager
+from app_final.models import SecurityIncident
 
 
 def test_auth():
